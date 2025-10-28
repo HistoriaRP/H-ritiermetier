@@ -1,0 +1,38 @@
+{
+  "pretre": {"id":"pretre","cat":"Civils & Service","title":"Prêtre","description":"Offices, rites, soutien moral et cérémonies.","slotsMax":1},
+  "nettoyeur": {"id":"nettoyeur","cat":"Civils & Service","title":"Nettoyeur","description":"Assainissement des zones, propreté, décontamination légère.","slotsMax":3},
+  "conseiller": {"id":"conseiller","cat":"Civils & Service","title":"Conseiller municipal","description":"Conseil au maire, dossiers publics, coordination citoyenne.","slotsMax":2},
+  "maire": {"id":"maire","cat":"Civils & Service","title":"Maire","description":"Direction de la Cité, arbitrage, décisions stratégiques.","slotsMax":1},
+  "animateur_event": {"id":"animateur_event","cat":"Civils & Service","title":"Animateur d’évènement","description":"Organisation d'événements, cohésion et divertissement.","slotsMax":2},
+  "transporteur": {"id":"transporteur","cat":"Civils & Service","title":"Transporteur","description":"Livraisons, convois, logistique routière.","slotsMax":5},
+  "postier": {"id":"postier","cat":"Civils & Service","title":"Postier","description":"Courrier, colis, relais entre quartiers et hameaux.","slotsMax":2},
+  "formateur": {"id":"formateur","cat":"Civils & Service","title":"Formateur / Professeur","description":"Transmettre les savoirs: survie, mécanique, soins, etc.","slotsMax":1},
+  "vendeur": {"id":"vendeur","cat":"Civils & Service","title":"Vendeur","description":"Tenue d'échoppe / étal, troc, gestion des prix.","slotsMax":1},
+  "barman": {"id":"barman","cat":"Civils & Service","title":"Barman","description":"Taverne, service, cohésion du quartier.","slotsMax":1},
+  "cuisinier": {"id":"cuisinier","cat":"Civils & Service","title":"Cuisinier","description":"Cantine, rationnement, recettes collectives.","slotsMax":1},
+  "bus": {"id":"bus","cat":"Civils & Service","title":"Conducteur de bus","description":"Lignes locales, rotations inter-quartiers.","slotsMax":1},
+  "train": {"id":"train","cat":"Civils & Service","title":"Conducteur de train","description":"Exploitation ferroviaire, sécurité des convois lourds.","slotsMax":2},
+
+  "medecin": {"id":"medecin","cat":"Médicaux & Techniques","title":"Médecin","description":"Consultations, chirurgie de fortune, triage d'urgence.","slotsMax":3},
+  "veterinaire": {"id":"veterinaire","cat":"Médicaux & Techniques","title":"Vétérinaire","description":"Soins animaux, élevages, contrôle sanitaire.","slotsMax":1},
+  "technicien": {"id":"technicien","cat":"Médicaux & Techniques","title":"Technicien","description":"Électricité, eau, radios: maintenance vitale.","slotsMax":1},
+  "forgeron": {"id":"forgeron","cat":"Médicaux & Techniques","title":"Forgeron","description":"Outillage, pièces métalliques, réparations avancées.","slotsMax":1},
+
+  "police": {"id":"police","cat":"Sécurité & Défense","title":"Police Impériale","description":"Police de la Cité, lois, enquêtes, patrouilles.","slotsMax":10},
+  "militaire": {"id":"militaire","cat":"Sécurité & Défense","title":"Militaire","description":"Défense extérieure, opérations spéciales, garnison.","slotsMax":15},
+  "garde_forestier": {"id":"garde_forestier","cat":"Sécurité & Défense","title":"Garde forestier","description":"Surveillance des bois, braconnage, sentiers sûrs.","slotsMax":1},
+
+  "banquier": {"id":"banquier","cat":"Administration & Com","title":"Banquier","description":"Coffres, prêts RP, tenue de comptes communautaires.","slotsMax":1},
+  "ministre": {"id":"ministre","cat":"Administration & Com","title":"Ministre","description":"Portefeuille (éco/santé/intérieur), directives sectorielles.","slotsMax":1},
+  "radio": {"id":"radio","cat":"Administration & Com","title":"Animateur radio","description":"Emissions, annonces publiques, veille info.","slotsMax":1},
+  "journaliste": {"id":"journaliste","cat":"Administration & Com","title":"Journaliste","description":"Articles, interviews, mémoire de la Cité.","slotsMax":1},
+
+  "eleveur_canin": {"id":"eleveur_canin","cat":"Agricoles","title":"Éleveur canin","description":"Chiens de garde/traque, élevage et dressage.","slotsMax":2},
+  "fermier": {"id":"fermier","cat":"Agricoles","title":"Fermier","description":"Cultures de survie, serres, compost, irrigation.","slotsMax":3},
+  "poissonnier": {"id":"poissonnier","cat":"Agricoles","title":"Poissonnier","description":"Pêche, préparation des produits marins, gestion des stocks de poissons et crustacés.","slotsMax":2},
+
+  "garde_du_corps": {"id":"garde_du_corps","cat":"Entreprises (Idées)","title":"Garde du corps","description":"Protection rapprochée de personnalités et de convois.","slotsMax":5},
+  "croisieres": {"id":"croisieres","cat":"Entreprises (Idées)","title":"Entreprise de croisières","description":"Balades sécurisées, tourisme RP, liaison fleuve/mer.","slotsMax":2},
+  "chasseurs_quetes": {"id":"chasseurs_quetes","cat":"Entreprises (Idées)","title":"Chasseurs de quêtes","description":"Contrats RP, traque d'artefacts, missions spéciales.","slotsMax":2},
+  "courses_auto": {"id":"courses_auto","cat":"Entreprises (Idées)","title":"Orga Courses autos","description":"Championnat local, mécanique, sécurité piste.","slotsMax":2}
+}
