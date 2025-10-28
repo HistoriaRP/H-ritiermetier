@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Héritier-RP · Bureau des Métiers (LIVE)</title>
+  <meta name="color-scheme" content="dark light" />
+  <style>
+    :root{
+      --bg:#0b0f14; --bg-2:#07090c; --card:#0f141b; --muted:#9aa4af; --text:#e6e9ef;
+      --accent:#fbbf24; --accent-2:#10b981; --danger:#dc2626; --border:#1f2937;
+      --shadow:0 0 0 1px rgba(255,255,255,.04); --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,"Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text); background: radial-gradient(ellipse at top, #0b0f14, #07090c 60%);
+    }
+    .container{max-width:1100px; margin:0 auto; padding:24px}
+    .row{display:flex; gap:12px; flex-wrap:wrap}
+    .btn{appearance:none; border:1px solid var(--border); background:#11161e; color:var(--text); padding:10px 14px;
+      border-radius:12px; cursor:pointer; transition:.2s}
+    .btn:hover{border-color:#374151}
+    .btn.primary{background:var(--accent); color:#000; border-color:transparent}
+    .btn.primary:hover{box-shadow:0 0 30px rgba(251,191,36,.35)}
+    .btn.green{background:var(--accent-2); color:#000; border-color:transparent}
+    .btn.green:hover{box-shadow:0 0 30px rgba(16,185,129,.35)}
+    .btn.danger{background:#7f1d1d; border-color:#991b1b}
+    .btn.danger:hover{background:#b91c1c}
+    .btn[disabled]{opacity:.5; cursor:not-allowed}
+    input,textarea{width:100%; background:#0b1017; border:1px solid var(--border); color:var(--text);
+      padding:10px 12px; border-radius:12px; outline:none}
+    input:focus,textarea:focus{border-color:var(--accent)}
+    .muted{color:var(--muted)} .badge{font-size:12px; color:var(--muted)}
+    .title{font-weight:800; letter-spacing:-.02em}
+    .divider{height:1px; background:linear-gradient(90deg,transparent,rgba(251,191,36,.45),transparent)}
+    .grid{display:grid; gap:14px}
+    @media(min-width:860px){ .grid.cols-2{grid-template-columns:1fr 1fr} }
+    .card{background:linear-gradient(135deg, rgba(17,22,30,.9), rgba(17,22,30,.6)); border:1px solid var(--border);
+      border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
+    .card .p{padding:18px}
+    .bar{height:8px; background:#11161e; border-radius:8px; overflow:hidden}
+    .bar .fill{height:8px; background:var(--accent)}
+    .halo{position:absolute; inset:0; pointer-events:none; opacity:0; transition:.25s}
+    .card:hover .halo{opacity:1}
+    .halo::before{content:""; position:absolute; left:-40px; top:-60px; width:220px; height:220px; filter:blur(50px);
+      background:rgba(251,191,36,.14); border-radius:999px}
+    /* Modal */
+    .modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.6); display:grid; place-items:center; padding:24px; z-index:50}
+    .modal{width:100%; max-width:640px; background:#0e131a; border:1px solid var(--border); border-radius:20px; box-shadow:0 30px 120px rgba(0,0,0,.5)}
+    .modal .head{padding:16px 18px 0} .modal .content{padding:18px} .actions{display:flex; justify-content:flex-end; gap:8px; padding:0 18px 18px}
+    /* Splash */
+    .splash{position:fixed; inset:0; background:#07090c; z-index:60; display:grid; place-items:center; overflow:hidden}
+    .scan{position:absolute; inset:0; background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 2px)}
+    .glow1,.glow2{position:absolute; border-radius:999px; filter:blur(120px); opacity:.25}
+    .glow1{width:640px; height:640px; left:-160px; top:-160px; background:rgba(251,191,36,.4)}
+    .glow2{width:560px; height:560px; right:-160px; bottom:-160px; background:rgba(16,185,129,.3)}
+    /* Debug panel */
+    #debug{position:fixed; right:12px; bottom:12px; width:360px; max-height:50vh; overflow:auto; padding:12px; border-radius:12px;
+      background:#0b1017; border:1px solid var(--border); box-shadow:var(--shadow); font-size:12px; display:none; z-index:70}
+    #debug .line{white-space:pre-wrap; border-bottom:1px dashed #263041; padding:6px 0}
+    #debug .ok{color:#10b981} #debug .warn{color:#fbbf24} #debug .err{color:#f87171}
+    #debugToggle{position:fixed; right:12px; bottom:12px; z-index:71}
+    footer{color:#8b949e; font-size:12px; text-align:center; padding:40px 24px}
+  </style>
+
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body>
+  <!-- Splash -->
+  <div id="splash" class="splash">
+    <div class="scan"></div><div class="glow1"></div><div class="glow2"></div>
+    <div style="text-align:center">
+      <div class="badge" style="letter-spacing:.5em; text-transform:uppercase; color:rgba(251,191,36,.75)">RECONSTRUCTION PROTOCOL</div>
+      <div style="font-weight:900; font-size:44px; margin-top:8px"><span style="color:var(--accent)">HÉRITIER-RP</span> // <span style="color:#9ba3ae">Bureau</span></div>
+      <div class="muted" style="margin-top:8px">Initialisation Firebase…</div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header style="position:relative; overflow:hidden; padding:28px 0 8px">
+    <div class="container">
+      <h1 class="title" style="font-size:34px">Héritier-RP <span style="color:var(--accent)">/</span> Bureau des Métiers</h1>
+      <p class="muted" style="max-width:760px; margin-top:8px">
+        Choisir un métier ici <strong style="color:var(--accent)">ne vaut pas attribution IG</strong>. C’est une <em>demande</em> pour réserver un slot et organiser la Cité.
+        Validation finale auprès du <strong>maire</strong> en jeu, ou via <strong>création d’entreprise</strong> (ticket Discord).
+      </p>
+      <div class="row" style="margin-top:16px">
+        <button id="btnAdmin" class="btn">Mode admin</button>
+        <button id="btnAddJob" class="btn primary" style="display:none">+ Ajouter un métier</button>
+        <button id="btnExport" class="btn">Exporter CSV</button>
+        <button id="btnStatus" class="btn">État</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <input id="search" placeholder="Rechercher un métier…">
+      </div>
+      <div class="badge" id="statusLine" style="margin-top:6px"></div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="container" id="content"></main>
+
+  <!-- Entreprise / Ticket -->
+  <section class="container" style="margin-top:28px">
+    <div class="divider"></div>
+    <h2 class="badge" style="text-transform:uppercase; margin:12px 0">Créer une entreprise (Ticket Discord)</h2>
+    <div class="card"><div class="p">
+      <p class="muted">Vous pouvez proposer une <strong>entreprise RP</strong>. Ouvrez un <strong>ticket sur le Discord</strong> avec ce gabarit :</p>
+      <label class="badge" style="display:block; margin-top:14px">Gabarit (copier/coller)</label>
+      <textarea id="ticket" rows="11" readonly></textarea>
+      <div style="margin-top:8px">
+        <button id="copyTicket" class="btn primary">Copier le gabarit</button>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- Modals host -->
+  <div id="modalHost"></div>
+
+  <!-- Debug tools -->
+  <button id="debugToggle" class="btn">🛠 Debug</button>
+  <div id="debug"></div>
+
+  <footer>Version LIVE — Realtime Database + Auth anonyme, UI admin avec mot de passe, sécurité par Rules + admins/&lt;UID&gt; = true.</footer>
+
+  <script>
+    /*************** CONFIG ***************/
+    const ADMIN_UI_PASSWORD = "HERITIERS-Ω-Imperium#2099"; // ouvre l’UI admin (mais n’outrepasse PAS les Rules)
+    const STORAGE_KEY_OLD  = "he_jobs_html_v1";            // ancien localStorage (pour migration si DB vide)
+
+	const firebaseConfig = {
+	apiKey: "AIzaSyD5hOepRTvpsSNCmpwnhzQSYyhJO6C1P-c",
+	authDomain: "heritier-85264.firebaseapp.com",
+	databaseURL: "https://heritier-85264-default-rtdb.europe-west1.firebasedatabase.app",
+	projectId: "heritier-85264",
+	storageBucket: "heritier-85264.appspot.com",
+	messagingSenderId: "859188258053",
+	appId: "1:859188258053:web:2f55f3a0926c0ff254436c",
+	measurementId: "G-JN93SKZ3P1"
+	};
+
+    /*************** HELPERS / DEBUG ***************/
+    const $ = sel => document.querySelector(sel);
+    const content = $("#content"), modalHost = $("#modalHost");
+    const btnAdmin = $("#btnAdmin"), btnAddJob = $("#btnAddJob"), btnExport = $("#btnExport"), btnStatus = $("#btnStatus");
+    const searchInput = $("#search"), statusLine = $("#statusLine");
+    const debugBox = $("#debug"), debugToggle = $("#debugToggle");
+
+    const log = (msg, level="ok") => {
+      const time = new Date().toLocaleTimeString();
+      console[level === "err" ? "error" : level === "warn" ? "warn" : "log"](`[${time}] ${msg}`);
+      const line = document.createElement("div");
+      line.className = `line ${level}`;
+      line.textContent = `[${time}] ${msg}`;
+      debugBox.prepend(line);
+    };
+    debugToggle.onclick = () => { debugBox.style.display = (debugBox.style.display === "block" ? "none" : "block"); };
+
+    const TICKET_TEMPLATE = `
+[Création d’entreprise] — Nom :
+
+1) Concept & objectifs :
+- 
+
+2) Emplacement :
+- 
+
+3) Équipe & rôles :
+- Fondateur(s) :
+- Effectif initial :
+- Slots demandés :
+
+4) Technique & logistique :
+- Ressources / appro :
+- Véhicules / stockage :
+
+5) Règlement & sécurité :
+- Risques identifiés :
+- Procédures prévues :
+
+6) Ambition & calendrier :
+- Étapes / dates :
+- Événements d’ouverture :
+
+7) Compétences / formation :
+- 
+
+8) Économie RP :
+- Tarifs / troc :
+- Salaires :
+- Partenariats :
+
+Contacts Discord : <votre_pseudo>
+`.trim();
+    $("#ticket").value = TICKET_TEMPLATE;
+    $("#copyTicket").onclick = () => navigator.clipboard.writeText(TICKET_TEMPLATE);
+
+    /*************** FIREBASE INIT ***************/
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.database();
+
+    let currentUID = null;
+    let isAdminUI = false; // mot de passe OK
+    let isAdminRT = false; // dans /admins/<uid> (Rules)
+    let jobs = [];         // defs
+    const applicantsMap = {}; // jobId -> {pushId: {handle, at}}
+
+    // Connexion auth anonyme + écoute d’état
+    async function ensureAnonAuth(){
+      if (!auth.currentUser){
+        try{
+          await auth.signInAnonymously();
+          log("Auth anonyme: OK");
+        }catch(e){
+          log("Auth anonyme: ERREUR → " + e.message, "err");
+          alert("Auth anonyme refusée (voir console). Vérifie: Auth Anonyme activée, domaine autorisé, cookies non bloqués.");
+        }
+      }
+    }
+
+    // RTDB connexion physique
+    db.ref(".info/connected").on("value", s=>{
+      const connected = !!s.val();
+      statusLine.textContent = `RTDB: ${connected ? "connecté" : "déconnecté"} · UID: ${auth.currentUser?.uid || "…"} · AdminRT: ${isAdminRT}`;
+      log(`.info/connected=${connected}`);
+    });
+
+    auth.onAuthStateChanged(async (user)=>{
+      currentUID = user?.uid || null;
+      log("onAuthStateChanged → UID=" + (currentUID || "(null)"));
+      updateStatus();
+      await refreshAdminFlag();
+      bootRealtime();
+      hideSplashSoon();
+    });
+
+    function hideSplashSoon(){
+      const splash = document.getElementById("splash");
+      if(!splash) return;
+      splash.style.transition = "opacity .6s";
+      setTimeout(()=>{ splash.style.opacity="0"; }, 300);
+      setTimeout(()=>{ splash.remove(); }, 1200);
+    }
+
+    function updateStatus(){
+      statusLine.textContent = `RTDB: (init) · UID: ${currentUID || "…"} · AdminUI=${isAdminUI} · AdminRT=${isAdminRT}`;
+    }
+
+    async function refreshAdminFlag(){
+      if(!currentUID){ isAdminRT=false; btnAddJob.style.display="none"; return; }
+      try{
+        const snap = await db.ref("admins/"+currentUID).get();
+        isAdminRT = !!snap.val();
+        log("AdminRT = " + isAdminRT);
+      }catch(e){
+        isAdminRT = false;
+        log("AdminRT check ERROR: " + e.message, "err");
+      }
+      btnAddJob.style.display = (isAdminUI ? "" : "none"); // UI visible si mdp OK (sécurité réelle côté Rules)
+      updateStatus();
+    }
+
+    /*************** REALTIME LISTENERS ***************/
+    function bootRealtime(){
+      db.ref("jobs").off();
+      db.ref("jobs").on("value", async snap=>{
+        const val = snap.val();
+        if(!val){
+          log("jobs: vide");
+          // propose migration si ancien localStorage
+          const old = loadLocalLegacy();
+          if(old.jobs?.length && confirm("Aucune donnée en base. Importer vos anciens métiers/candidatures locales vers le LIVE ?")){
+            try{
+              await migrateFromLocalToRTDB(old);
+              alert("Migration terminée ✅");
+            }catch(e){
+              alert("Échec migration: " + e.message + "\nVérifie les Rules (écriture réservée aux admins) et ton UID admin.");
+              log("Migration fail: " + e.message, "err");
+            }
+          }
+          jobs = []; render(); return;
+        }
+        jobs = Object.values(val).sort((a,b)=> a.cat.localeCompare(b.cat) || a.title.localeCompare(b.title));
+        // écoute candidats
+        jobs.forEach(j=>{
+          applicantsMap[j.id] ||= {};
+          db.ref("applicants/"+j.id).off();
+          db.ref("applicants/"+j.id).on("value", s=>{
+            applicantsMap[j.id] = s.val() || {};
+            render();
+          });
+        });
+        render();
+      }, err => log("jobs listener err: " + err.message, "err"));
+    }
+
+    function loadLocalLegacy(){
+      try{ const raw = localStorage.getItem(STORAGE_KEY_OLD); return raw ? JSON.parse(raw) : {jobs:[]}; }
+      catch{ return {jobs:[]}; }
+    }
+
+    async function migrateFromLocalToRTDB(localState){
+      if(!isAdminRT) throw new Error("Tu n'es pas admin RT (admins/<uid>=true).");
+      const defs = {};
+      const updates = {};
+      (localState.jobs||[]).forEach(j=>{
+        defs[j.id] = { id:j.id, title:j.title, cat:j.cat, description:j.description||"", slotsMax:j.slotsMax||1 };
+        (j.applicants||[]).forEach(a=>{
+          const k = db.ref("applicants/"+j.id).push().key;
+          updates["applicants/"+j.id+"/"+k] = { handle:a.handle, at:a.at || new Date().toISOString() };
+        });
+      });
+      await db.ref("jobs").set(defs);
+      if(Object.keys(updates).length) await db.ref().update(updates);
+    }
+
+    /*************** UI / RENDER ***************/
+    function h(tag, attrs={}, ...children){
+      const el = document.createElement(tag);
+      for(const k in attrs){
+        if(k.startsWith("on") && typeof attrs[k]==="function") el.addEventListener(k.slice(2).toLowerCase(), attrs[k]);
+        else if(attrs[k]===true) el.setAttribute(k,"");
+        else if(attrs[k]!==false && attrs[k]!=null) el.setAttribute(k, attrs[k]);
+      }
+      for(const c of children.flat()){
+        if(c==null) continue;
+        el.appendChild(typeof c==="string" ? document.createTextNode(c) : c);
+      }
+      return el;
+    }
+    const sectionTitle = (t)=>{ const w=h("div"); w.appendChild(h("div",{class:"divider"})); w.appendChild(h("h2",{class:"badge",style:"text-transform:uppercase; margin:12px 0"},t)); w.appendChild(h("div",{class:"divider"})); return w; }
+    const groupByCat = (list)=>{ const m=new Map(); list.forEach(j=>{ if(!m.has(j.cat)) m.set(j.cat,[]); m.get(j.cat).push(j); }); return [...m.entries()].map(([name,items])=>({name,items})); }
+
+    function render(){
+      const q=(searchInput.value||"").trim().toLowerCase();
+      const defs = !q? jobs : jobs.filter(j=> j.title.toLowerCase().includes(q) || (j.description||"").toLowerCase().includes(q));
+      const cats = groupByCat(defs);
+      content.innerHTML = "";
+      cats.forEach(cat=>{
+        content.appendChild(sectionTitle(cat.name));
+        const grid = h("div",{class:"grid cols-2"});
+        cat.items.forEach(job => grid.appendChild(jobCard(job)));
+        content.appendChild(grid);
+      });
+    }
+
+    function jobCard(job){
+      const appl = applicantsMap[job.id]||{};
+      const taken = Object.keys(appl).length;
+      const full = taken >= (job.slotsMax||1);
+      const pct  = Math.min(100, Math.round((taken/(job.slotsMax||1))*100));
+
+      const card=h("article",{class:"card",style:"position:relative"});
+      card.appendChild(h("div",{class:"halo"}));
+      const body=h("div",{class:"p"});
+
+      const header=h("div",{class:"row",style:"justify-content:space-between; align-items:flex-start"});
+      header.appendChild(h("div",{}, h("div",{class:"title",style:"font-size:20px"},job.title), h("div",{class:"muted",style:"margin-top:6px"},job.description||"")));
+      header.appendChild(h("div",{style:"text-align:right"}, h("div",{class:"badge"},"Slots"), h("div",{style:"font-weight:800; font-size:18px"}, `${taken}/`, h("span",{class:"muted"},String(job.slotsMax)))));
+      body.appendChild(header);
+
+      body.appendChild(h("div",{class:"bar",style:"margin-top:10px"}, h("div",{class:"fill",style:`width:${pct}%`})));
+
+      const row=h("div",{class:"row",style:"margin-top:12px; justify-content:space-between"});
+      row.appendChild(h("button",{class:`btn ${full?'':'green'}`,disabled:full,onclick:()=>openApply(job)}, full?"Complet":"Postuler"));
+      if(isAdminUI){
+        const adminRow=h("div",{class:"row"});
+        adminRow.appendChild(h("button",{class:"btn",onclick:()=>openJobModal("edit",job)},"Éditer"));
+        adminRow.appendChild(h("button",{class:"btn danger",onclick:()=>openDelete(job)},"Suppr"));
+        row.appendChild(adminRow);
+      }
+      body.appendChild(row);
+
+      if(isAdminUI && taken>0){
+        const list=h("div",{style:"margin-top:12px; border-top:1px solid var(--border); padding-top:12px"});
+        list.appendChild(h("div",{class:"badge",style:"margin-bottom:6px"},"Candidats"));
+        Object.entries(appl).forEach(([key,a])=>{
+          list.appendChild(h("div",{class:"row",style:"justify-content:space-between"},
+            h("div",{}, a.handle),
+            h("div",{class:"badge"}, new Date(a.at).toLocaleString(), " ",
+              h("button",{class:"btn danger",style:"margin-left:8px; padding:4px 8px",onclick:()=>kickApplicant(job.id,key)},"Retirer")
+            )));
+        });
+        body.appendChild(list);
+      }
+
+      card.appendChild(body);
+      return card;
+    }
+
+    /*************** ACTIONS ***************/
+    // joueurs
+    async function applyToJob(jobId, handle){
+      try{
+        if(!auth.currentUser) await ensureAnonAuth();
+        const list = Object.values(applicantsMap[jobId]||{});
+        if(list.some(a => (a.handle||"").toLowerCase()===handle.toLowerCase())) return alert("Tu as déjà postulé.");
+        const job = jobs.find(j=>j.id===jobId); if(!job) return alert("Métier introuvable.");
+        if(list.length >= (job.slotsMax||1)) return alert("Désolé, ce métier est complet.");
+        await db.ref("applicants/"+jobId).push({handle, at:new Date().toISOString()});
+        log(`apply OK → ${jobId} / ${handle}`);
+      }catch(e){
+        log("apply ERROR: " + e.message, "err");
+        alert("Candidature refusée: " + e.message);
+      }
+    }
+
+    // admin (écritures protégées par Rules + adminRT)
+    async function addJob(def){
+      try{
+        const id = def.id || ("job_"+Date.now());
+        await db.ref("jobs/"+id).set({
+          id, title:def.title||"Sans titre", cat:def.cat||"Divers",
+          description:def.description||"", slotsMax:Math.max(1, parseInt(def.slotsMax,10)||1)
+        });
+        log("addJob OK → " + id);
+      }catch(e){ log("addJob ERROR: " + e.message, "err"); alert("Échec ajout: " + e.message); }
+    }
+    async function editJob(id, patch){
+      try{
+        const j = jobs.find(x=>x.id===id); if(!j) throw new Error("Job not found");
+        const newSlots = patch.slotsMax!=null ? Math.max(1, parseInt(patch.slotsMax,10)||j.slotsMax) : j.slotsMax;
+        await db.ref("jobs/"+id).update({
+          title: patch.title??j.title, cat: patch.cat??j.cat, description: patch.description??j.description, slotsMax: newSlots
+        });
+        log("editJob OK → " + id);
+      }catch(e){ log("editJob ERROR: " + e.message, "err"); alert("Échec édition: " + e.message); }
+    }
+    async function deleteJob(id){
+      try{
+        await db.ref("jobs/"+id).remove();
+        await db.ref("applicants/"+id).remove();
+        log("deleteJob OK → " + id);
+      }catch(e){ log("deleteJob ERROR: " + e.message, "err"); alert("Échec suppression: " + e.message); }
+    }
+    async function kickApplicant(jobId, pushId){
+      try{ await db.ref("applicants/"+jobId+"/"+pushId).remove(); log(`kick OK → ${jobId}/${pushId}`); }
+      catch(e){ log("kick ERROR: " + e.message, "err"); alert("Échec retrait: " + e.message); }
+    }
+
+    /*************** MODALES ***************/
+    function openApply(job){
+      let discord=""; const close=()=> modalHost.innerHTML="";
+      modalHost.innerHTML="";
+      modalHost.appendChild(
+        h("div",{class:"modal-backdrop"},
+          h("div",{class:"modal"},
+            h("div",{class:"head"},h("h3",{class:"title",style:"font-size:20px"},"Postuler — ",job.title)),
+            h("div",{class:"content"},
+              h("label",{class:"badge"},"Pseudo Discord"),
+              h("input",{id:"applyInput",placeholder:"Ex: Enzo#1234",oninput:e=>{discord=e.target.value}})
+            ),
+            h("div",{class:"actions"},
+              h("button",{class:"btn",onclick:close},"Annuler"),
+              h("button",{class:"btn green",onclick:async()=>{ if(!discord.trim()) return alert("Indique ton pseudo Discord"); await applyToJob(job.id, discord.trim()); close(); }},"Envoyer")
+            )
+          )
+        )
+      );
+      setTimeout(()=> document.getElementById("applyInput")?.focus(), 0);
+    }
+
+    btnAdmin.onclick = ()=>{
+      let pwd=""; const close=()=> modalHost.innerHTML="";
+      modalHost.innerHTML="";
+      modalHost.appendChild(
+        h("div",{class:"modal-backdrop"},
+          h("div",{class:"modal"},
+            h("div",{class:"head"},h("h3",{class:"title",style:"font-size:20px"},"Mode admin (UI)")),
+            h("div",{class:"content"},
+              h("p",{class:"muted"},"Entre le mot de passe admin UI. Les écritures restent protégées par les Rules Firebase."),
+              h("p",{}, h("strong",{},"Ton UID : "), h("code",{}, currentUID || "(connexion en cours…)")),
+              h("div",{class:"badge",style:"margin:-4px 0 10px"},"Ajoute dans la base : admins / <UID> : true"),
+              h("input",{type:"password",placeholder:"Mot de passe UI",oninput:e=>pwd=e.target.value})
+            ),
+            h("div",{class:"actions"},
+              h("button",{class:"btn",onclick:close},"Fermer"),
+              h("button",{class:"btn green",onclick:()=>{
+                if(pwd===ADMIN_UI_PASSWORD){ isAdminUI=true; btnAddJob.style.display=""; log("AdminUI déverrouillé"); refreshAdminFlag(); close(); }
+                else alert("Mot de passe incorrect.");
+              }},"Valider")
+            )
+          )
+        )
+      );
+    };
+
+    btnAddJob.onclick = ()=> openJobModal("add");
+    btnExport.onclick = ()=> exportCSV();
+    btnStatus.onclick = ()=>{
+      alert([
+        `UID: ${currentUID || "(null)"}`,
+        `AdminUI: ${isAdminUI}`,
+        `AdminRT: ${isAdminRT}`,
+        `Jobs: ${jobs.length}`,
+      ].join("\n"));
+    }
+    searchInput.addEventListener("input", render);
+
+    function openJobModal(mode, job){
+      let form = job ? {title:job.title, cat:job.cat, description:job.description||"", slotsMax:job.slotsMax}
+                     : {title:"", cat:"", description:"", slotsMax:1};
+      const close=()=> modalHost.innerHTML="";
+      modalHost.innerHTML="";
+      modalHost.appendChild(
+        h("div",{class:"modal-backdrop"},
+          h("form",{class:"modal", onsubmit:async e=>{
+            e.preventDefault();
+            if(!isAdminUI){ alert("Déverrouille d’abord l’UI admin."); return; }
+            if(mode==="add") await addJob(form); else await editJob(job.id, form);
+            close();
+          }},
+          h("div",{class:"head"},h("h3",{class:"title",style:"font-size:20px"}, mode==="add"?"Ajouter un métier":`Éditer — ${job.title}`)),
+          h("div",{class:"content"},
+            h("label",{class:"badge"},"Nom du métier"),
+            h("input",{value:form.title,required:true,oninput:e=>form.title=e.target.value}),
+            h("div",{style:"height:8px"}),
+            h("label",{class:"badge"},"Catégorie"),
+            h("input",{value:form.cat,required:true,placeholder:"ex: Civils & Service",oninput:e=>form.cat=e.target.value}),
+            h("div",{style:"height:8px"}),
+            h("label",{class:"badge"},"Description"),
+            h("textarea",{rows:4,oninput:e=>form.description=e.target.value},form.description),
+            h("div",{style:"height:8px"}),
+            h("label",{class:"badge"},"Slots max"),
+            h("input",{type:"number",min:"1",value:form.slotsMax,required:true,oninput:e=>form.slotsMax=e.target.value})
+          ),
+          h("div",{class:"actions"},
+            h("button",{type:"button",class:"btn",onclick:close},"Annuler"),
+            h("button",{class:"btn green",type:"submit"},"Enregistrer")
+          )))
+      );
+    }
+
+    function openDelete(job){
+      const close=()=> modalHost.innerHTML="";
+      modalHost.innerHTML="";
+      modalHost.appendChild(
+        h("div",{class:"modal-backdrop"},
+          h("div",{class:"modal"},
+            h("div",{class:"head"},h("h3",{class:"title",style:"font-size:20px"},"Confirmation")),
+            h("div",{class:"content"},h("p",{},"Supprimer définitivement le métier ",h("strong",{},job.title)," ?")),
+            h("div",{class:"actions"},
+              h("button",{class:"btn",onclick:close},"Annuler"),
+              h("button",{class:"btn danger",onclick:async()=>{ await deleteJob(job.id); close(); }},"Confirmer")
+            )))
+      );
+    }
+
+    function exportCSV(){
+      const rows = ["job_id;categorie;job_title;discord;applied_at"];
+      jobs.forEach(j=>{
+        Object.values(applicantsMap[j.id]||{}).forEach(a=>{
+          rows.push(`${j.id};"${j.cat}";"${j.title}";"${a.handle}";${a.at}`);
+        });
+      });
+      const blob = new Blob([rows.join("\n")], {type:"text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = "he_jobs_export.csv"; a.click();
+      URL.revokeObjectURL(url);
+      log("Export CSV");
+    }
+
+    /*************** BOOT ***************/
+    (async function boot(){
+      log("Boot…");
+      await ensureAnonAuth();
+    })();
+  </script>
+</body>
+</html>
